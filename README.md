@@ -2,10 +2,10 @@
 
 Pytorch implementation for our CVPR2023 paper "Identity-Preserving Talking Face Generation with Landmark and Appearance Priors".
 
-(plan to complete before May 15th)
+**(plan to complete before May 15th)**
 
 [[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://www.youtube.com/will_coming_soon)
-<img src='./misc/demo.gif' width=800>
+<img src='./CVPR2023framework.png' width=800>
 ## Requirements
 - Python 3.7.13
 - Pytorch 1.10.0
