@@ -30,20 +30,27 @@ pip install -r requirements.txt
 
 ## Train
 
+### Preprare [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) dataset
 
-[LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html)
 
 
 
 ## Acknowledgement
-This code is built upon the publicly available code DFRF and Wav2Lip. Thanks the authors of DFRF and Wav2Lip for making their excellent work and codes publicly available.
+This project is built upon the publicly available code [DFRF](https://github.com/sstzal/DFRF) and [Wav2Lip](https://github.com/Rudrabha/Wav2Lip/tree/master). Thanks the authors of DFRF and Wav2Lip for making their excellent work and codes publicly available.
 
 
 
 
 ## Citation
 Please cite the following paper if you use this repository in your reseach.
-
+```
+@inproceedings{zhong2023identity-preserving,
+  title={Identity-Preserving Talking Face Generation with Landmark and Appearance Priors},
+  author={Weizhi Zhong, Chaowei Fang, Yinqi Cai, Pengxu Wei, Gangming Zhao, Liang Lin, Guanbin Li},
+  booktitle="Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition",
+  year={2023}
+}
+```
 
 
 
