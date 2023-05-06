@@ -2,7 +2,7 @@
 
 ****(plan to complete the project before May 15th)****
 
-Pytorch implementation for our CVPR2023 paper "Identity-Preserving Talking Face Generation with Landmark and Appearance Priors".
+Pytorch implementation for our CVPR2023 paper "****I****dentity-****P****reserving Talking Face Generation with ****L****andmark and ****A****ppearance ****P****riors".
 
 <img src='./CVPR2023framework.png' width=900>
 
