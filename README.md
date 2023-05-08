@@ -8,7 +8,7 @@ Pytorch implementation for our CVPR2023 paper "****I****dentity-****P****reservi
 
 
 
-[[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://www.youtube.com/will_coming_soon)
+[[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://youtu.be/wtb689iTJC8)
 
 ## Requirements
 - Python 3.7.13
