@@ -49,8 +49,9 @@ CUDA_VISIBLE_DEVICES=0 python train_landmarks_generator.py --pre_audio_root ./lr
 ### Train video renderer
 run the 
 ```
-
+CUDA_VISIBLE_DEVICES=0,1,2,3 python train_video_renderer.py --sketch_root ...../lrs2_sketch/ --face_img_root ..../lrs2_face/  --audio_root ...../lrs2_audio/
 ```
+note：the translation module will only be trained  after 25 epoches, thus the fid and running_gen_loss will only decrease after epoch 25. 
 
 
 ## Acknowledgement
