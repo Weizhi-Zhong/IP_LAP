@@ -1,12 +1,17 @@
 # IP_LAP: Identity-Preserving Talking Face Generation with Landmark and Appearance Priors （CVPR 2023）
 
-****(plan to complete the project before May 15th)****
-
-Pytorch implementation for our CVPR2023 paper "****I****dentity-****P****reserving Talking Face Generation with ****L****andmark and ****A****ppearance ****P****riors".
+Pytorch official implementation for our CVPR2023 paper "****I****dentity-****P****reserving Talking Face Generation with ****L****andmark and ****A****ppearance ****P****riors".
 
 <img src='./CVPR2023framework.png' width=900>
 
-
+TODO:(****will finish before May 15th****)
+- [x] Demo videos
+- [x] pre-trained model
+- [x] code for testing
+- [x] code for training
+- [ ] code for preprocess dataset
+- [ ] guidline 
+- [ ] arxiv paper release
 
 [[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://youtu.be/wtb689iTJC8)
 
