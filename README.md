@@ -15,13 +15,13 @@ Pytorch implementation for our CVPR2023 paper "****I****dentity-****P****reservi
 - Pytorch 1.10.0
 - torchvision 0.11.0
 
-We conduct the experiments with 4 24G RTX3090 on CUDA 11.1. For more details, please refer to the `requirements.txt`. 
+We conduct the experiments with 4 24G RTX3090 on CUDA 11.1. For more details, please refer to the `requirements.txt`. We recommand to 
 ```
 pip install -r requirements.txt
 ```
 
 ## Test
-
+download the pretrain models from [[oneDrive]](https://1drv.ms/f/s!Amqu9u09qiUGi7UJIADzCCC9rThkpQ?e=P1jG5N) or [[jianguoyun]](https://www.jianguoyun.com/p/DeXpK34QgZ-EChjI9YcFIAA), and place them to the the `test/checkpoints` 
 
 
 
@@ -32,7 +32,15 @@ pip install -r requirements.txt
 
 ## Train
 
-### Preprare [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) dataset
+### Preprare and Preprocess[LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) dataset
+
+
+### Train Landmark generator
+```
+CUDA_VISIBLE_DEVICES=0 python train_landmarks_generator.py --pre_audio_root ./lrs2_audio/ --landmarks_root ./lrs2_landmarks/
+```
+
+### Train video renderer
 
 
 
