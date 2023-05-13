@@ -4,14 +4,14 @@ Pytorch official implementation for our CVPR2023 paper "**I**dentity-**P**reserv
 
 <img src='./CVPR2023framework.png' width=900>
 
-TODO:(**will finish before May 15th**)
+TODO:
 - [x] Demo videos
 - [x] pre-trained model
 - [x] code for testing
 - [x] code for training
 - [x] code for preprocess dataset
 - [x] guideline 
-- [ ] arxiv paper release
+- [ ] arxiv paper release(scheduled to be announced at Tue, 16 May 2023 00:00:00 GMT.)
 
 [[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://youtu.be/wtb689iTJC8)
 
