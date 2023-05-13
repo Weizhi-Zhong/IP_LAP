@@ -180,9 +180,9 @@ def warping(source_image, deformation):
     return torch.nn.functional.grid_sample(source_image, deformation)
 
 
-class FlowNetwork(torch.nn.Module):
+class DenseFlowNetwork(torch.nn.Module):
     def __init__(self, num_channel=6, num_channel_modulation=3*5, hidden_size=256):
-        super(FlowNetwork, self).__init__()
+        super(DenseFlowNetwork, self).__init__()
 
         # Convolutional Layers
         self.conv1 = torch.nn.Conv2d(num_channel, 32, kernel_size=7, stride=1, padding=3)
@@ -198,11 +198,11 @@ class FlowNetwork(torch.nn.Module):
         self.spade_layer_1 = SPADE(256, num_channel_modulation, hidden_size)
         self.spade_layer_2 = SPADE(256, num_channel_modulation, hidden_size)
         self.pixel_shuffle_1 = torch.nn.PixelShuffle(2)
-        self.spade_layer_3 = SPADE(64, num_channel_modulation, hidden_size)
+        self.spade_layer_4 = SPADE(64, num_channel_modulation, hidden_size)
 
         # Final Convolutional Layer
-        self.conv_3 = torch.nn.Conv2d(64, 2, kernel_size=7, stride=1, padding=3)
-        self.conv_4= nn.Sequential(torch.nn.Conv2d(64, 32, kernel_size=7, stride=1, padding=3),
+        self.conv_4 = torch.nn.Conv2d(64, 2, kernel_size=7, stride=1, padding=3)
+        self.conv_5= nn.Sequential(torch.nn.Conv2d(64, 32, kernel_size=7, stride=1, padding=3),
                                    torch.nn.ReLU(),
                                    torch.nn.Conv2d(32, 1, kernel_size=7, stride=1, padding=3),
                                    torch.nn.Sigmoid(),
@@ -239,11 +239,11 @@ class FlowNetwork(torch.nn.Module):
 
             spade_layer = self.pixel_shuffle_1(spade_layer)   #(64,128,128)
 
-            spade_layer = self.spade_layer_3(spade_layer, driving_sketch)    #(64,128,128)
+            spade_layer = self.spade_layer_4(spade_layer, driving_sketch)    #(64,128,128)
 
             # Final Convolutional Layer
-            output_flow = self.conv_3(spade_layer)      #   (B*T,2,128,128)
-            output_weight=self.conv_4(spade_layer)       #  (B*T,1,128,128)
+            output_flow = self.conv_4(spade_layer)      #   (B*T,2,128,128)
+            output_weight=self.conv_5(spade_layer)       #  (B*T,1,128,128)
 
             deformation=convert_flow_to_deformation(output_flow)
             wrapped_h1 = warping(h1, deformation)  #(32,128,128)
@@ -301,7 +301,7 @@ class TranslationNetwork(torch.nn.Module):
         self.spade_2 = SPADE(num_channel=64, num_channel_modulation=32)
         self.adain_2 = AdaIN(input_channel=64,modulation_channel=512)
 
-        self.spade_3 = SPADE(num_channel=64, num_channel_modulation=3)
+        self.spade_4 = SPADE(num_channel=64, num_channel_modulation=3)
 
         # Final layer
         self.leaky_relu = torch.nn.LeakyReLU()
@@ -323,7 +323,7 @@ class TranslationNetwork(torch.nn.Module):
 
         x = self.spade_2(x, wrapped_h1)   # (64,128,128)
         x = self.adain_2(x, audio_feature)  # (64,128,128)
-        x = self.spade_3(x, wrapped_ref)    # (64,128,128)
+        x = self.spade_4(x, wrapped_ref)    # (64,128,128)
 
         # output layer
         x = self.leaky_relu(x)
@@ -336,7 +336,7 @@ class Renderer(torch.nn.Module):
         super(Renderer, self).__init__()
 
         # 1.flow Network
-        self.flow_module = FlowNetwork()
+        self.flow_module = DenseFlowNetwork()
         #2. translation Network
         self.translation = TranslationNetwork()
         #3.return loss
