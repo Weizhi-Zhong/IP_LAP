@@ -9,7 +9,7 @@ TODO:(****will finish before May 15th****)
 - [x] pre-trained model
 - [x] code for testing
 - [x] code for training
-- [ ] code for preprocess dataset
+- [x] code for preprocess dataset
 - [ ] guidline 
 - [ ] arxiv paper release
 
