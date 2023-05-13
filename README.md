@@ -25,20 +25,26 @@ We conduct the experiments with 4 24G RTX3090 on CUDA 11.1. For more details, pl
 ```
 pip install -r requirements.txt
 ```
-
 ## Test
-download the pretrain models from [oneDrive](https://1drv.ms/f/s!Amqu9u09qiUGi7UJIADzCCC9rThkpQ?e=P1jG5N) or [jianguoyun](https://www.jianguoyun.com/p/DeXpK34QgZ-EChjI9YcFIAA), and place them to the the folder `test/checkpoints` . Then run the following command:
+Download the pre-trained models from [oneDrive](https://1drv.ms/f/s!Amqu9u09qiUGi7UJIADzCCC9rThkpQ?e=P1jG5N) or [jianguoyun](https://www.jianguoyun.com/p/DeXpK34QgZ-EChjI9YcFIAA), and place them to the folder `test/checkpoints` . Then run the following command:
 ```
 CUDA_VISIBLE_DEVICES=0 python inference_single.py
 ```
-To inference on others video, specify the `--input` and  `--audio` option and see more details in code.
-
+To inference on other videos, please specify the `--input` and `--audio` option and see more details in code.
 
 ## Train
-
-### download [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) dataset
+### download LRS2 dataset
+Our models are trained on LRS2. Please go to the [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) website to download the dataset. LRS2 dataset folder structure is following:
+```
+data_root (mvlrs_v1)
+├── main, pretrain (we use only main folder in this work)
+|	├── list of folders
+|	│   ├── five-digit numbered video IDs ending with (.mp4)
+```
+`main folder` is the `lrs2_video` mentioned below.
 
 ### preprocess the audio
+firstly we run 
 ```
 CUDA_VISIBLE_DEVICES=0 python preprocess_audio.py --data_root ...../lrs2_video/ --out_root ./lrs2_audio
 ```
