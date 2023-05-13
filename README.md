@@ -82,7 +82,7 @@ Please cite the following paper if you use this repository in your research.
 @inproceedings{zhong2023identity-preserving,
   title={Identity-Preserving Talking Face Generation with Landmark and Appearance Priors},
   author={Weizhi Zhong, Chaowei Fang, Yinqi Cai, Pengxu Wei, Gangming Zhao, Liang Lin, Guanbin Li},
-  booktitle="Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition",
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
   year={2023}
 }
 ```
