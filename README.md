@@ -19,6 +19,7 @@ TODO:(****will finish before May 15th****)
 - Python 3.7.13
 - torch 1.10.0
 - torchvision 0.11.0
+- ffmpeg
 
 We conduct the experiments with 4 24G RTX3090 on CUDA 11.1. For more details, please refer to the `requirements.txt`. We recommand to install [pytorch](https://pytorch.org/) firsrly, and then run:
 ```
@@ -37,9 +38,15 @@ To inference on others video, specify the `--input` and  `--audio` option and se
 
 ### download [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) dataset
 
+### preprocess the audio
+```
+CUDA_VISIBLE_DEVICES=0 python preprocess_audio.py --data_root ...../lrs2_video/ --out_root ./lrs2_audio
+```
 ### preprocess the videos face 
 
-
+```
+UDA_VISIBLE_DEVICES=0 python preprocess_video.py --dataset_video_root ....../lrs2_video/
+```
 
 ### Train Landmark generator
 ```
