@@ -11,9 +11,9 @@ TODO:
 - [x] code for training
 - [x] code for preprocess dataset
 - [x] guideline 
-- [ ] arxiv paper release(scheduled to be announced at Tue, 16 May 2023 00:00:00 GMT.)
+- [x] arxiv paper release
 
-[[Paper]](https://arxiv.org/abs/coming_soon) [[Demo Video]](https://youtu.be/wtb689iTJC8)
+[[Paper]](https://arxiv.org/abs/2305.08293) [[Demo Video]](https://youtu.be/wtb689iTJC8)
 
 ## Requirements
 - Python 3.7.13
@@ -76,8 +76,8 @@ Note that the translation module will only be trained  after 25 epochs, thus the
 This project is built upon the publicly available code [DFRF](https://github.com/sstzal/DFRF) , [pix2pixHD](https://github.com/NVIDIA/pix2pixHD) and [Wav2Lip](https://github.com/Rudrabha/Wav2Lip/tree/master). Thank the authors of these works for making their excellent work and codes publicly available.
 
 
-## Citation
-Please cite the following paper if you use this repository in your research.
+## Citation and Star
+Please cite the following paper and star this project if you use this repository in your research. Thank you!
 ```
 @inproceedings{zhong2023identity-preserving,
   title={Identity-Preserving Talking Face Generation with Landmark and Appearance Priors},
