@@ -79,11 +79,13 @@ This project is built upon the publicly available code [DFRF](https://github.com
 ## Citation and Star
 Please cite the following paper and star this project if you use this repository in your research. Thank you!
 ```
-@inproceedings{zhong2023identity-preserving,
-  title={Identity-Preserving Talking Face Generation with Landmark and Appearance Priors},
-  author={Weizhi Zhong, Chaowei Fang, Yinqi Cai, Pengxu Wei, Gangming Zhao, Liang Lin, Guanbin Li},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year={2023}
+@InProceedings{Zhong_2023_CVPR,
+    author    = {Zhong, Weizhi and Fang, Chaowei and Cai, Yinqi and Wei, Pengxu and Zhao, Gangming and Lin, Liang and Li, Guanbin},
+    title     = {Identity-Preserving Talking Face Generation With Landmark and Appearance Priors},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2023},
+    pages     = {9729-9738}
 }
 ```
 
