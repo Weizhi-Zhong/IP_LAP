@@ -10,10 +10,10 @@ from models import audio
 from draw_landmark import draw_landmarks
 import mediapipe as mp
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', '--input_template_video', type=str, default='./test/template_video/666.mp4')
+parser.add_argument('--input', '--input_template_video', type=str, default='./test/template_video/129.mp4')
 #'./test/template_video/129.mp4'
-#'./test/template_video/666.mp4'
-parser.add_argument('--audio', type=str, default='./test/template_video/abstract.mp3')
+
+parser.add_argument('--audio', type=str, default='./test/template_video/audio2.wav')
 #'./test/template_video/abstract.mp3'
 #'./test/template_video/audio2.wav'
 parser.add_argument('--output_dir', type=str, default='./test_result')
