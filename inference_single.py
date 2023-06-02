@@ -168,8 +168,11 @@ def load_model(model, path):
     s = checkpoint["state_dict"]
     new_s = {}
     for k, v in s.items():
-        new_s[k.replace('module.', '', 1)] = v
-
+        if k[:6] == 'module':
+            new_k=k.replace('module.', '', 1)
+        else:
+            new_k =k
+        new_s[new_k] = v
     model.load_state_dict(new_s)
     model = model.to(device)
     return model.eval()
