@@ -63,8 +63,11 @@ train the landmark generator network by running:
 ```
 CUDA_VISIBLE_DEVICES=0 python train_landmarks_generator.py --pre_audio_root ..../lrs2_audio --landmarks_root ..../lrs2_landmarks
 ```
+The models are trained until the eval_L1_loss no longer decreases (about 6e-3).
+Under the default batchsize setting on a single RTX 3090, our model stopped at epoch 1837(610k iteration) with eval_L1_loss 5.866 e-3, using no more than one day.
 
 ### train Video Renderer
+Training for the video renderer is similar (on four RTX 3090). Train it until the FID no longer decreases (about 20 or less).
 train the video renderer network by running:
 ```
 CUDA_VISIBLE_DEVICES=0,1,2,3 python train_video_renderer.py --sketch_root ..../lrs2_sketch --face_img_root ..../lrs2_face  --audio_root ..../lrs2_audio
