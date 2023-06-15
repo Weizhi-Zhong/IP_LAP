@@ -32,6 +32,7 @@ CUDA_VISIBLE_DEVICES=0 python inference_single.py
 ```
 To inference on other videos, please specify the `--input` and `--audio` option and see more details in code.
 
+The evaluation code is similar to [this repo](https://github.com/dc3ea9f/vico_challenge_baseline/tree/a282472ea99a1983ca2ce194665a51c2634a1416/evaluations).
 ## Train
 ### download LRS2 dataset
 Our models are trained on LRS2. Please go to the [LRS2](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html) website to download the dataset. LRS2 dataset folder structure is following:
