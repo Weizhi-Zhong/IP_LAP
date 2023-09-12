@@ -222,8 +222,8 @@ def get_velocity_loss (pred, gt):  #(B*T,2,57) (B*T,2,57)
     pred=torch.stack(torch.split(pred,T,dim=0),dim=0)  #(B,T,2,57)
     gt = torch.stack(torch.split(gt, T, dim=0), dim=0)  # (B,T,2,57)
 
-    pred=torch.cat([pred[:,:,:,i] for i in range(3)],dim=2)  #(B,T,57*2)
-    gt = torch.cat([gt[:, :, :, i] for i in range(3)], dim=2)  # (B,T,57*2)
+    pred=torch.cat([pred[:,:,:,i] for i in range(pred.size(3))],dim=2)  #(B,T,57*2)
+    gt = torch.cat([gt[:, :, :, i] for i in range(gt.size(3))], dim=2)  # (B,T,57*2)
 
     b, t, c = pred.shape
     pred_spiky = pred[:, 1:, :] - pred[:, :-1, :]   #
