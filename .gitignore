@@ -1,6 +1,7 @@
 # Data and Config
 .cache/
-test_results/
+test_result/
+test/checkpoints/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
