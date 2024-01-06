@@ -1,12 +1,10 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-from torch import nn
-import torch
-import torch.nn as nn
 from torch.autograd import Variable
-import math
-import torch.nn.functional as F
+
+
 def apply_imagenet_normalization(input):
     r"""Normalize using ImageNet mean and std.
 
@@ -23,6 +21,7 @@ def apply_imagenet_normalization(input):
     std = normalized_input.new_tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
     output = (normalized_input - mean) / std
     return output
+
 
 class PerceptualLoss(nn.Module):
     r"""Perceptual loss initialization.
@@ -84,13 +83,12 @@ class PerceptualLoss(nn.Module):
         self.resize_mode = resize_mode
         self.instance_normalized = instance_normalized
 
+        # print('\tMode: {}'.format(network))
 
-        print('Perceptual loss:')
-        print('\tMode: {}'.format(network))
-
-    def forward(self, inp_source, target_source, mask=None,use_style_loss=False,weight_style_to_perceptual=0.,warp=False):
-        inp=inp_source.clone()
-        target=target_source.clone()
+    def forward(self, inp_source, target_source, mask=None, use_style_loss=False,
+                weight_style_to_perceptual=0., warp=False):
+        inp = inp_source.clone()
+        target = target_source.clone()
         if warp:
             inp[:, :, 0:96 // 2, :] = 0
             target[:, :, 0:96 // 2, :] = 0
@@ -118,7 +116,7 @@ class PerceptualLoss(nn.Module):
 
         # Evaluate perceptual loss at each scale.
         loss = 0
-        style_loss=0
+        style_loss = 0
         for scale in range(self.num_scales):
             input_features, target_features = \
                 self.model(inp), self.model(target)
@@ -144,10 +142,9 @@ class PerceptualLoss(nn.Module):
                     target_feature = target_feature * mask_
                     # print('mask',mask_.shape)
 
-
                 loss += weight * self.criterion(input_feature,
                                                 target_feature)
-                if use_style_loss and scale==0:
+                if use_style_loss and scale == 0:
                     style_loss += self.criterion(self.compute_gram(input_feature),
                                                  self.compute_gram(target_feature))
 
@@ -161,10 +158,9 @@ class PerceptualLoss(nn.Module):
                     align_corners=False, recompute_scale_factor=True)
 
         if use_style_loss:
-            return loss + style_loss*weight_style_to_perceptual
+            return loss + style_loss * weight_style_to_perceptual
         else:
             return loss
-
 
     def compute_gram(self, x):
         b, ch, h, w = x.size()
@@ -172,6 +168,7 @@ class PerceptualLoss(nn.Module):
         f_T = f.transpose(1, 2)
         G = f.bmm(f_T) / (h * w * ch)
         return G
+
 
 class _PerceptualNetwork(nn.Module):
     r"""The network that extracts features to compute the perceptual loss.
@@ -408,15 +405,13 @@ class GANLoss(nn.Module):
     def get_target_tensor(self, input, target_is_real):
         target_tensor = None
         if target_is_real:
-            create_label = ((self.real_label_var is None) or
-                            (self.real_label_var.numel() != input.numel()))
+            create_label = ((self.real_label_var is None) or (self.real_label_var.numel() != input.numel()))
             if create_label:
                 real_tensor = self.Tensor(input.size()).fill_(self.real_label)
                 self.real_label_var = Variable(real_tensor, requires_grad=False)
             target_tensor = self.real_label_var
         else:
-            create_label = ((self.fake_label_var is None) or
-                            (self.fake_label_var.numel() != input.numel()))
+            create_label = ((self.fake_label_var is None) or (self.fake_label_var.numel() != input.numel()))
             if create_label:
                 fake_tensor = self.Tensor(input.size()).fill_(self.fake_label)
                 self.fake_label_var = Variable(fake_tensor, requires_grad=False)

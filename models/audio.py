@@ -1,9 +1,10 @@
 import librosa
 import librosa.filters
+import lws
 import numpy as np
 from scipy import signal
 from scipy.io import wavfile
-import lws
+
 
 class HParams:
     def __init__(self, **kwargs):
@@ -65,14 +66,14 @@ hp = HParams(
     # test depending on dataset. Pitch info: male~[65, 260], female~[100, 525])
     fmax=7600,  # To be increased/reduced depending on data.
 
-    ###################### Our training parameters #################################
+    # ================== Our training parameters ============================ #
     img_size=288,
     fps=25,
 
     batch_size=8,
     initial_learning_rate=1e-4,
     nepochs=200000000000000000,
-    ### ctrl + c, stop whenever eval loss is consistently greater than train loss for ~10 epochs
+    # ctrl + c, stop whenever eval loss is consistently greater than train loss for ~10 epochs
     num_workers=4,
     checkpoint_interval=6000,
     eval_interval=6000,
@@ -194,7 +195,7 @@ def _linear_to_mel(spectogram):
 
 def _build_mel_basis():
     assert hp.fmax <= hp.sample_rate // 2
-    return librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels,
+    return librosa.filters.mel(sr=hp.sample_rate, n_fft=hp.n_fft, n_mels=hp.num_mels,
                                fmin=hp.fmin, fmax=hp.fmax)
 
 
@@ -225,9 +226,9 @@ def _normalize(S):
 def _denormalize(D):
     if hp.allow_clipping_in_normalization:
         if hp.symmetric_mels:
-            return (((np.clip(D, -hp.max_abs_value,
-                              hp.max_abs_value) + hp.max_abs_value) * -hp.min_level_db / (2 * hp.max_abs_value))
-                    + hp.min_level_db)
+            return (((
+                np.clip(D, -hp.max_abs_value, hp.max_abs_value) + hp.max_abs_value
+            ) * -hp.min_level_db / (2 * hp.max_abs_value)) + hp.min_level_db)
         else:
             return ((np.clip(D, 0, hp.max_abs_value) * -hp.min_level_db / hp.max_abs_value) + hp.min_level_db)
 

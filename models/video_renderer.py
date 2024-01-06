@@ -1,8 +1,7 @@
-from torch.nn import functional as F
 import torch
 import torch.nn as nn
-import torchvision
-
+from torchvision.models import vgg19, VGG19_Weights
+from torch.nn import functional as F
 
 
 class AdaINLayer(nn.Module):
@@ -12,7 +11,7 @@ class AdaINLayer(nn.Module):
         self.InstanceNorm2d = nn.InstanceNorm2d(input_nc, affine=False)
 
         nhidden = 128
-        use_bias=True
+        use_bias = True
 
         self.mlp_shared = nn.Sequential(
             nn.Linear(modulation_nc, nhidden, bias=use_bias),
@@ -33,33 +32,31 @@ class AdaINLayer(nn.Module):
         beta = self.mlp_beta(actv)
 
         # apply scale and bias
-        gamma = gamma.view(*gamma.size()[:2], 1,1)
-        beta = beta.view(*beta.size()[:2], 1,1)
+        gamma = gamma.view(*gamma.size()[:2], 1, 1)
+        beta = beta.view(*beta.size()[:2], 1, 1)
         out = normalized * (1 + gamma) + beta
         return out
 
-class AdaIN(torch.nn.Module):
 
-    def __init__(self, input_channel, modulation_channel,kernel_size=3, stride=1, padding=1):
+class AdaIN(torch.nn.Module):
+    def __init__(self, input_channel, modulation_channel, kernel_size=3, stride=1, padding=1):
         super(AdaIN, self).__init__()
-        self.conv_1 = torch.nn.Conv2d(input_channel, input_channel, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.conv_2 = torch.nn.Conv2d(input_channel, input_channel, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.conv_1 = torch.nn.Conv2d(input_channel, input_channel,
+                                      kernel_size=kernel_size, stride=stride, padding=padding)
+        self.conv_2 = torch.nn.Conv2d(input_channel, input_channel,
+                                      kernel_size=kernel_size, stride=stride, padding=padding)
         self.leaky_relu = torch.nn.LeakyReLU(0.2)
         self.adain_layer_1 = AdaINLayer(input_channel, modulation_channel)
         self.adain_layer_2 = AdaINLayer(input_channel, modulation_channel)
 
     def forward(self, x, modulation):
-
         x = self.adain_layer_1(x, modulation)
         x = self.leaky_relu(x)
         x = self.conv_1(x)
         x = self.adain_layer_2(x, modulation)
         x = self.leaky_relu(x)
         x = self.conv_2(x)
-
         return x
-
-
 
 
 class SPADELayer(torch.nn.Module):
@@ -67,10 +64,12 @@ class SPADELayer(torch.nn.Module):
         super(SPADELayer, self).__init__()
         self.instance_norm = torch.nn.InstanceNorm2d(input_channel)
 
-        self.conv1 = torch.nn.Conv2d(modulation_channel, hidden_size, kernel_size=kernel_size, stride=stride,
-                                     padding=padding)
-        self.gamma = torch.nn.Conv2d(hidden_size, input_channel, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.beta = torch.nn.Conv2d(hidden_size, input_channel, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.conv1 = torch.nn.Conv2d(modulation_channel, hidden_size,
+                                     kernel_size=kernel_size, stride=stride, padding=padding)
+        self.gamma = torch.nn.Conv2d(hidden_size, input_channel,
+                                     kernel_size=kernel_size, stride=stride, padding=padding)
+        self.beta = torch.nn.Conv2d(hidden_size, input_channel,
+                                    kernel_size=kernel_size, stride=stride, padding=padding)
 
     def forward(self, input, modulation):
         norm = self.instance_norm(input)
@@ -103,13 +102,14 @@ class SPADE(torch.nn.Module):
         input = self.conv_2(input)
         return input
 
+
 class Conv2d(nn.Module):
     def __init__(self, cin, cout, kernel_size, stride, padding, residual=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.conv_block = nn.Sequential(
-                            nn.Conv2d(cin, cout, kernel_size, stride, padding),
-                            nn.BatchNorm2d(cout)
-                            )
+            nn.Conv2d(cin, cout, kernel_size, stride, padding),
+            nn.BatchNorm2d(cout)
+        )
         self.act = nn.ReLU()
         self.residual = residual
 
@@ -119,11 +119,12 @@ class Conv2d(nn.Module):
             out += x
         return self.act(out)
 
+
 def downsample(x, size):
     if len(x.size()) == 5:
         size = (x.size(2), size[0], size[1])
         return torch.nn.functional.interpolate(x, size=size, mode='nearest')
-    return  torch.nn.functional.interpolate(x, size=size, mode='nearest')
+    return torch.nn.functional.interpolate(x, size=size, mode='nearest')
 
 
 def convert_flow_to_deformation(flow):
@@ -177,11 +178,11 @@ def warping(source_image, deformation):
         deformation = deformation.permute(0, 3, 1, 2)
         deformation = torch.nn.functional.interpolate(deformation, size=(h, w), mode='bilinear')
         deformation = deformation.permute(0, 2, 3, 1)
-    return torch.nn.functional.grid_sample(source_image, deformation)
+    return torch.nn.functional.grid_sample(source_image, deformation, align_corners=False)
 
 
 class DenseFlowNetwork(torch.nn.Module):
-    def __init__(self, num_channel=6, num_channel_modulation=3*5, hidden_size=256):
+    def __init__(self, num_channel=6, num_channel_modulation=3 * 5, hidden_size=256):
         super(DenseFlowNetwork, self).__init__()
 
         # Convolutional Layers
@@ -193,7 +194,6 @@ class DenseFlowNetwork(torch.nn.Module):
         self.conv2_bn = torch.nn.BatchNorm2d(num_features=256, affine=True)
         self.conv2_relu = torch.nn.ReLU()
 
-
         # SPADE Blocks
         self.spade_layer_1 = SPADE(256, num_channel_modulation, hidden_size)
         self.spade_layer_2 = SPADE(256, num_channel_modulation, hidden_size)
@@ -202,62 +202,63 @@ class DenseFlowNetwork(torch.nn.Module):
 
         # Final Convolutional Layer
         self.conv_4 = torch.nn.Conv2d(64, 2, kernel_size=7, stride=1, padding=3)
-        self.conv_5= nn.Sequential(torch.nn.Conv2d(64, 32, kernel_size=7, stride=1, padding=3),
-                                   torch.nn.ReLU(),
-                                   torch.nn.Conv2d(32, 1, kernel_size=7, stride=1, padding=3),
-                                   torch.nn.Sigmoid(),
-                                   )#predict weight
+        self.conv_5 = nn.Sequential(
+            torch.nn.Conv2d(64, 32, kernel_size=7, stride=1, padding=3),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(32, 1, kernel_size=7, stride=1, padding=3),
+            torch.nn.Sigmoid(),
+        )
 
-    def forward(self, ref_N_frame_img, ref_N_frame_sketch, T_driving_sketch): #to output: (B*T,3,H,W)
-                   #   (B, N, 3, H, W)(B, N, 3, H, W)    (B, 5, 3, H, W)  #
+    def forward(self, ref_N_frame_img, ref_N_frame_sketch, T_driving_sketch):
         ref_N = ref_N_frame_img.size(1)
 
-        driving_sketch=torch.cat([T_driving_sketch[:,i] for i in range(T_driving_sketch.size(1))], dim=1)  #(B, 3*5, H, W)
+        # (B, 3*5, H, W)
+        driving_sketch = torch.cat([T_driving_sketch[:, i] for i in range(T_driving_sketch.size(1))], dim=1)
 
-        wrapped_h1_sum, wrapped_h2_sum, wrapped_ref_sum=0.,0.,0.
-        softmax_denominator=0.
-        T = 1  # during rendering, generate T=1 image  at a time
-        for ref_idx in range(ref_N): # each ref img provide information for each B*T frame
-            ref_img= ref_N_frame_img[:, ref_idx]  #(B, 3, H, W)
-            ref_img = ref_img.unsqueeze(1).expand(-1, T, -1, -1, -1)  # (B,T, 3, H, W)
-            ref_img = torch.cat([ref_img[i] for i in range(ref_img.size(0))], dim=0)  # (B*T, 3, H, W)
+        wrapped_h1_sum, wrapped_h2_sum, wrapped_ref_sum = 0., 0., 0.
+        softmax_denominator = 0.0
+        T = 1                           # during rendering, generate T=1 image  at a time
+        for ref_idx in range(ref_N):    # each ref img provide information for each B*T frame
+            ref_img = ref_N_frame_img[:, ref_idx]                                               # (B, 3, H, W)
+            ref_img = ref_img.unsqueeze(1).expand(-1, T, -1, -1, -1)                            # (B, T, 3, H, W)
+            ref_img = torch.cat([ref_img[i] for i in range(ref_img.size(0))], dim=0)            # (B*T, 3, H, W)
 
-            ref_sketch = ref_N_frame_sketch[:, ref_idx] #(B, 3, H, W)
-            ref_sketch = ref_sketch.unsqueeze(1).expand(-1, T, -1, -1, -1)  # (B,T, 3, H, W)
-            ref_sketch = torch.cat([ref_sketch[i] for i in range(ref_sketch.size(0))], dim=0)  # (B*T, 3, H, W)
+            ref_sketch = ref_N_frame_sketch[:, ref_idx]                                         # (B, 3, H, W)
+            ref_sketch = ref_sketch.unsqueeze(1).expand(-1, T, -1, -1, -1)                      # (B, T, 3, H, W)
+            ref_sketch = torch.cat([ref_sketch[i] for i in range(ref_sketch.size(0))], dim=0)   # (B*T, 3, H, W)
 
-            #predict flow and weight
-            flow_module_input = torch.cat((ref_img, ref_sketch), dim=1)  #(B*T, 3+3, H, W)
+            # predict flow and weight
+            flow_module_input = torch.cat((ref_img, ref_sketch), dim=1)                         # (B*T, 3+3, H, W)
             # Convolutional Layers
-            h1 = self.conv1_relu(self.conv1_bn(self.conv1(flow_module_input)))   #(32,128,128)
-            h2 = self.conv2_relu(self.conv2_bn(self.conv2(h1)))    #(256,64,64)
+            h1 = self.conv1_relu(self.conv1_bn(self.conv1(flow_module_input)))                  # (32, 128, 128)
+            h2 = self.conv2_relu(self.conv2_bn(self.conv2(h1)))                                 # (256, 64, 64)
             # SPADE Blocks
-            downsample_64 = downsample(driving_sketch, (64, 64))   # driving_sketch:(B*T, 3, H, W)
+            downsample_64 = downsample(driving_sketch, (64, 64))                # driving_sketch: (B*T, 3, H, W)
 
-            spade_layer = self.spade_layer_1(h2, downsample_64)  #(256,64,64)
-            spade_layer = self.spade_layer_2(spade_layer, downsample_64)   #(256,64,64)
+            spade_layer = self.spade_layer_1(h2, downsample_64)                                 # (256, 64, 64)
+            spade_layer = self.spade_layer_2(spade_layer, downsample_64)                        # (256, 64, 64)
 
-            spade_layer = self.pixel_shuffle_1(spade_layer)   #(64,128,128)
+            spade_layer = self.pixel_shuffle_1(spade_layer)                                     # (64, 128, 128)
 
-            spade_layer = self.spade_layer_4(spade_layer, driving_sketch)    #(64,128,128)
+            spade_layer = self.spade_layer_4(spade_layer, driving_sketch)                       # (64, 128, 128)
 
             # Final Convolutional Layer
-            output_flow = self.conv_4(spade_layer)      #   (B*T,2,128,128)
-            output_weight=self.conv_5(spade_layer)       #  (B*T,1,128,128)
+            output_flow = self.conv_4(spade_layer)                                              # (B*T, 2, 128, 128)
+            output_weight = self.conv_5(spade_layer)                                            # (B*T, 1, 128, 128)
 
-            deformation=convert_flow_to_deformation(output_flow)
-            wrapped_h1 = warping(h1, deformation)  #(32,128,128)
-            wrapped_h2 = warping(h2, deformation)   #(256,64,64)
-            wrapped_ref = warping(ref_img, deformation)  #(3,128,128)
+            deformation = convert_flow_to_deformation(output_flow)
+            wrapped_h1 = warping(h1, deformation)                                               # (32, 128, 128)
+            wrapped_h2 = warping(h2, deformation)                                               # (256, 64, 64)
+            wrapped_ref = warping(ref_img, deformation)                                         # (3, 128, 128)
 
-            softmax_denominator+=output_weight
-            wrapped_h1_sum+=wrapped_h1*output_weight
-            wrapped_h2_sum+=wrapped_h2*downsample(output_weight, (64,64))
-            wrapped_ref_sum+=wrapped_ref*output_weight
-        #return weighted warped feataure and images
-        softmax_denominator+=0.00001
-        wrapped_h1_sum=wrapped_h1_sum/softmax_denominator
-        wrapped_h2_sum = wrapped_h2_sum / downsample(softmax_denominator, (64,64))
+            softmax_denominator += output_weight
+            wrapped_h1_sum += wrapped_h1 * output_weight
+            wrapped_h2_sum += wrapped_h2 * downsample(output_weight, (64, 64))
+            wrapped_ref_sum += wrapped_ref * output_weight
+        # return weighted warped feataure and images
+        softmax_denominator += 0.00001
+        wrapped_h1_sum = wrapped_h1_sum / softmax_denominator
+        wrapped_h2_sum = wrapped_h2_sum / downsample(softmax_denominator, (64, 64))
         wrapped_ref_sum = wrapped_ref_sum / softmax_denominator
         return wrapped_h1_sum, wrapped_h2_sum, wrapped_ref_sum
 
@@ -285,7 +286,8 @@ class TranslationNetwork(torch.nn.Module):
             Conv2d(512, 512, kernel_size=1, stride=1, padding=0), )
 
         # Encoder
-        self.conv1 = torch.nn.Conv2d(in_channels=3+3*5, out_channels=32, kernel_size=7, stride=1, padding=3, bias=False)
+        self.conv1 = torch.nn.Conv2d(in_channels=3 + 3 * 5, out_channels=32,
+                                     kernel_size=7, stride=1, padding=3, bias=False)
         self.conv1_bn = torch.nn.BatchNorm2d(num_features=32, affine=True)
         self.conv1_relu = torch.nn.ReLU()
 
@@ -295,35 +297,38 @@ class TranslationNetwork(torch.nn.Module):
 
         # Decoder
         self.spade_1 = SPADE(num_channel=256, num_channel_modulation=256)
-        self.adain_1 = AdaIN(256,512)
+        self.adain_1 = AdaIN(256, 512)
         self.pixel_suffle_1 = nn.PixelShuffle(upscale_factor=2)
 
         self.spade_2 = SPADE(num_channel=64, num_channel_modulation=32)
-        self.adain_2 = AdaIN(input_channel=64,modulation_channel=512)
+        self.adain_2 = AdaIN(input_channel=64, modulation_channel=512)
 
         self.spade_4 = SPADE(num_channel=64, num_channel_modulation=3)
 
         # Final layer
         self.leaky_relu = torch.nn.LeakyReLU()
         self.conv_last = torch.nn.Conv2d(in_channels=64, out_channels=3, kernel_size=7, stride=1, padding=3, bias=False)
-        self.Sigmoid=torch.nn.Sigmoid()
-    def forward(self, translation_input, wrapped_ref, wrapped_h1, wrapped_h2, T_mels):
-        #              (B,3+3,H,W)   (B,3,128,128)  (B,32,128,128) (B,256,64,64) (B,T,1,h,w)  #T=1
-        # Encoder
-        T_mels=torch.cat([T_mels[i] for i in range(T_mels.size(0))],dim=0)# B*T,1,h,w
-        x = self.conv1_relu(self.conv1_bn(self.conv1(translation_input)))    #32,128,128
-        x = self.conv2_relu(self.conv2_bn(self.conv2(x)))  #256,64,64
+        self.Sigmoid = torch.nn.Sigmoid()
 
-        audio_feature = self.audio_encoder(T_mels).squeeze(-1).permute(0,2,1) #(B*T,1,512)
+    def forward(self, translation_input, wrapped_ref, wrapped_h1, wrapped_h2, T_mels):
+        """
+        Input: (B, 3+3, H, W), (B, 3, 128, 128), (B, 32, 128, 128), (B, 256, 64, 64), (B, T, 1, h, w), T = 1.
+        """
+        # Encoder
+        T_mels = torch.cat([T_mels[i] for i in range(T_mels.size(0))], dim=0)       # B*T, 1, h, w
+        x = self.conv1_relu(self.conv1_bn(self.conv1(translation_input)))           # 32, 128, 128
+        x = self.conv2_relu(self.conv2_bn(self.conv2(x)))                           # 256, 64, 64
+
+        audio_feature = self.audio_encoder(T_mels).squeeze(-1).permute(0, 2, 1)     # (B*T, 1, 512)
 
         # Decoder
-        x = self.spade_1(x, wrapped_h2) # (C=256,64,64)
-        x = self.adain_1(x, audio_feature)  # (C=256,64,64)
-        x = self.pixel_suffle_1(x)   # (C=64,128,128)
+        x = self.spade_1(x, wrapped_h2)                                             # (C = 256, 64, 64)
+        x = self.adain_1(x, audio_feature)                                          # (C = 256, 64, 64)
+        x = self.pixel_suffle_1(x)                                                  # (C = 64, 128, 128)
 
-        x = self.spade_2(x, wrapped_h1)   # (64,128,128)
-        x = self.adain_2(x, audio_feature)  # (64,128,128)
-        x = self.spade_4(x, wrapped_ref)    # (64,128,128)
+        x = self.spade_2(x, wrapped_h1)                                             # (64, 128, 128)
+        x = self.adain_2(x, audio_feature)                                          # (64, 128, 128)
+        x = self.spade_4(x, wrapped_ref)                                            # (64, 128, 128)
 
         # output layer
         x = self.leaky_relu(x)
@@ -331,46 +336,53 @@ class TranslationNetwork(torch.nn.Module):
         x = self.Sigmoid(x)
         return x
 
+
 class Renderer(torch.nn.Module):
     def __init__(self):
         super(Renderer, self).__init__()
 
         # 1.flow Network
         self.flow_module = DenseFlowNetwork()
-        #2. translation Network
+        # 2. translation Network
         self.translation = TranslationNetwork()
-        #3.return loss
+        # 3.return loss
         self.perceptual = PerceptualLoss(network='vgg19',
                                          layers=['relu_1_1', 'relu_2_1', 'relu_3_1', 'relu_4_1', 'relu_5_1'],
                                          num_scales=2)
 
-    def forward(self, face_frame_img, target_sketches, ref_N_frame_img, ref_N_frame_sketch, audio_mels): #T=1
-        #            (B,1,3,H,W)   (B,5,3,H,W)       (B,N,3,H,W)   (B,N,3,H,W)  (B,T,1,hv,wv)T=1
-        # (1)warping reference images and their feature
-        wrapped_h1, wrapped_h2, wrapped_ref = self.flow_module(ref_N_frame_img, ref_N_frame_sketch, target_sketches)
-        #(B,C,H,W)
+    def forward(self, face_frame_img: torch.Tensor, target_sketches: torch.Tensor,
+                ref_N_frame_img: torch.Tensor, ref_N_frame_sketch: torch.Tensor, audio_mels: torch.Tensor):
+        """With T = 1.
 
-        # (2)translation module
+        Args:
+            face_frame_img (torch.Tensor): (B, 1, 3, H, W)
+            target_sketches (torch.Tensor): (B, T, 3, H, W)
+            ref_N_frame_img (torch.Tensor): (B, N, 3, H, W)
+            ref_N_frame_sketch (torch.Tensor): (B, N, 3, H, W)
+            audio_mels (torch.Tensor): (B, T, 1, hv, wv)
+        """
+        # (1) Warping reference images and their feature
+        wrapped_h1, wrapped_h2, wrapped_ref = self.flow_module(ref_N_frame_img, ref_N_frame_sketch, target_sketches)
+        # (B, C, H, W)
+
+        # (2) Translation module
         target_sketches = torch.cat([target_sketches[:, i] for i in range(target_sketches.size(1))], dim=1)
-        # (B,3*T,H,W)
-        gt_face = torch.cat([face_frame_img[i] for i in range(face_frame_img.size(0))], dim=0)
-        # (B,3,H,W)
+        gt_face = face_frame_img.squeeze(1)                                     # (B, 3, H, W)
+
         gt_mask_face = gt_face.clone()
-        gt_mask_face[:, :, gt_mask_face.size(2) // 2:, :] = 0  # (B,3,H,W)
-        #
-        translation_input=torch.cat([gt_mask_face, target_sketches], dim=1) #  (B*T,3+3,H,W)
-        generated_face = self.translation(translation_input, wrapped_ref, wrapped_h1, wrapped_h2, audio_mels) #translation_input
+        gt_mask_face[:, :, gt_mask_face.size(2) // 2:, :] = 0                   # (B, 3, H, W)
+
+        translation_input = torch.cat([gt_mask_face, target_sketches], dim=1)   # (B*T, 3+3, H, W)
+        generated_face = self.translation(translation_input, wrapped_ref, wrapped_h1, wrapped_h2, audio_mels)
 
         perceptual_gen_loss = self.perceptual(generated_face, gt_face, use_style_loss=True,
                                               weight_style_to_perceptual=250).mean()
         perceptual_warp_loss = self.perceptual(wrapped_ref, gt_face, use_style_loss=False,
                                                weight_style_to_perceptual=0.).mean()
-        return generated_face, wrapped_ref, torch.unsqueeze(perceptual_warp_loss, 0), torch.unsqueeze(
-            perceptual_gen_loss, 0)
-        # (B,3,H,W) and losses
+        return generated_face, wrapped_ref, perceptual_warp_loss.unsqueeze(0), perceptual_gen_loss.unsqueeze(0)
 
-#the following is the code for Perceptual(VGG) loss
 
+# ========== The following is the code for Perceptual (VGG) loss. ========== #
 def apply_imagenet_normalization(input):
     r"""Normalize using ImageNet mean and std.
 
@@ -387,6 +399,7 @@ def apply_imagenet_normalization(input):
     std = normalized_input.new_tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
     output = (normalized_input - mean) / std
     return output
+
 
 class _PerceptualNetwork(nn.Module):
     r"""The network that extracts features to compute the perceptual loss.
@@ -419,9 +432,10 @@ class _PerceptualNetwork(nn.Module):
                 output[layer_name] = x
         return output
 
+
 def _vgg19(layers):
     r"""Get vgg19 layers"""
-    network = torchvision.models.vgg19(pretrained=True).features
+    network = vgg19(weights=VGG19_Weights.DEFAULT).features
     layer_name_mapping = {1: 'relu_1_1',
                           3: 'relu_1_2',
                           6: 'relu_2_1',
@@ -436,6 +450,7 @@ def _vgg19(layers):
                           26: 'relu_4_4',
                           29: 'relu_5_1'}
     return _PerceptualNetwork(network, layer_name_mapping, layers)
+
 
 class PerceptualLoss(nn.Module):
     r"""Perceptual loss initialization.
@@ -485,11 +500,9 @@ class PerceptualLoss(nn.Module):
         self.resize_mode = resize_mode
         self.instance_normalized = instance_normalized
 
+        # print('\tMode: {}'.format(network))
 
-        print('Perceptual loss:')
-        print('\tMode: {}'.format(network))
-
-    def forward(self, inp, target, mask=None,use_style_loss=False,weight_style_to_perceptual=0.):
+    def forward(self, inp, target, mask=None, use_style_loss=False, weight_style_to_perceptual=0.):
         r"""Perceptual loss forward.
 
         Args:
@@ -514,7 +527,7 @@ class PerceptualLoss(nn.Module):
 
         # Evaluate perceptual loss at each scale.
         loss = 0
-        style_loss=0
+        style_loss = 0
         for scale in range(self.num_scales):
             input_features, target_features = \
                 self.model(inp), self.model(target)
@@ -540,10 +553,8 @@ class PerceptualLoss(nn.Module):
                     target_feature = target_feature * mask_
                     # print('mask',mask_.shape)
 
-
-                loss += weight * self.criterion(input_feature,
-                                                target_feature)
-                if use_style_loss and scale==0:
+                loss += weight * self.criterion(input_feature, target_feature)
+                if use_style_loss and scale == 0:
                     style_loss += self.criterion(self.compute_gram(input_feature),
                                                  self.compute_gram(target_feature))
 
@@ -557,10 +568,9 @@ class PerceptualLoss(nn.Module):
                     align_corners=False, recompute_scale_factor=True)
 
         if use_style_loss:
-            return loss + style_loss*weight_style_to_perceptual
+            return loss + style_loss * weight_style_to_perceptual
         else:
             return loss
-
 
     def compute_gram(self, x):
         b, ch, h, w = x.size()
@@ -568,4 +578,3 @@ class PerceptualLoss(nn.Module):
         f_T = f.transpose(1, 2)
         G = f.bmm(f_T) / (h * w * ch)
         return G
-
