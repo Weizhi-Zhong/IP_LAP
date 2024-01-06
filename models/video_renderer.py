@@ -220,11 +220,11 @@ class DenseFlowNetwork(torch.nn.Module):
         T = 1                           # during rendering, generate T=1 image  at a time
         for ref_idx in range(ref_N):    # each ref img provide information for each B*T frame
             ref_img = ref_N_frame_img[:, ref_idx]                                               # (B, 3, H, W)
-            ref_img = ref_img.unsqueeze(1).expand(-1, T, -1, -1, -1)                            # (B,T, 3, H, W)
+            ref_img = ref_img.unsqueeze(1).expand(-1, T, -1, -1, -1)                            # (B, T, 3, H, W)
             ref_img = torch.cat([ref_img[i] for i in range(ref_img.size(0))], dim=0)            # (B*T, 3, H, W)
 
             ref_sketch = ref_N_frame_sketch[:, ref_idx]                                         # (B, 3, H, W)
-            ref_sketch = ref_sketch.unsqueeze(1).expand(-1, T, -1, -1, -1)                      # (B,T, 3, H, W)
+            ref_sketch = ref_sketch.unsqueeze(1).expand(-1, T, -1, -1, -1)                      # (B, T, 3, H, W)
             ref_sketch = torch.cat([ref_sketch[i] for i in range(ref_sketch.size(0))], dim=0)   # (B*T, 3, H, W)
 
             # predict flow and weight
@@ -238,9 +238,9 @@ class DenseFlowNetwork(torch.nn.Module):
             spade_layer = self.spade_layer_1(h2, downsample_64)                                 # (256, 64, 64)
             spade_layer = self.spade_layer_2(spade_layer, downsample_64)                        # (256, 64, 64)
 
-            spade_layer = self.pixel_shuffle_1(spade_layer)                                     # (64,128,128)
+            spade_layer = self.pixel_shuffle_1(spade_layer)                                     # (64, 128, 128)
 
-            spade_layer = self.spade_layer_4(spade_layer, driving_sketch)                       # (64,128,128)
+            spade_layer = self.spade_layer_4(spade_layer, driving_sketch)                       # (64, 128, 128)
 
             # Final Convolutional Layer
             output_flow = self.conv_4(spade_layer)                                              # (B*T, 2, 128, 128)
@@ -356,24 +356,18 @@ class Renderer(torch.nn.Module):
 
         Args:
             face_frame_img (torch.Tensor): (B, 1, 3, H, W)
-            target_sketches (torch.Tensor): (B, 5, 3, H, W)
+            target_sketches (torch.Tensor): (B, T, 3, H, W)
             ref_N_frame_img (torch.Tensor): (B, N, 3, H, W)
             ref_N_frame_sketch (torch.Tensor): (B, N, 3, H, W)
             audio_mels (torch.Tensor): (B, T, 1, hv, wv)
         """
         # (1) Warping reference images and their feature
         wrapped_h1, wrapped_h2, wrapped_ref = self.flow_module(ref_N_frame_img, ref_N_frame_sketch, target_sketches)
-        # (B,C,H,W)
+        # (B, C, H, W)
 
         # (2) Translation module
         target_sketches = torch.cat([target_sketches[:, i] for i in range(target_sketches.size(1))], dim=1)
-        gt_face = torch.cat([face_frame_img[i] for i in range(face_frame_img.size(0))], dim=0)
-        # TODO: Efficiency improvement.
-        # test_target_sketches = target_sketches.squeeze(1)                            # (B, 3*T, H, W)
-        # test_gt_face = face_frame_img.squeeze(0)                                     # (B, 3, H, W)
-
-        # assert all(test_target_sketches.size == test_gt_face.size)
-        # assert all(test_target_sketches.size == gt_face.size)
+        gt_face = face_frame_img.squeeze(1)                                     # (B, 3, H, W)
 
         gt_mask_face = gt_face.clone()
         gt_mask_face[:, :, gt_mask_face.size(2) // 2:, :] = 0                   # (B, 3, H, W)
@@ -385,9 +379,7 @@ class Renderer(torch.nn.Module):
                                               weight_style_to_perceptual=250).mean()
         perceptual_warp_loss = self.perceptual(wrapped_ref, gt_face, use_style_loss=False,
                                                weight_style_to_perceptual=0.).mean()
-        return generated_face, wrapped_ref, torch.unsqueeze(perceptual_warp_loss, 0), torch.unsqueeze(
-            perceptual_gen_loss, 0)
-        # (B,3,H,W) and losses
+        return generated_face, wrapped_ref, perceptual_warp_loss.unsqueeze(0), perceptual_gen_loss.unsqueeze(0)
 
 
 # ========== The following is the code for Perceptual (VGG) loss. ========== #
